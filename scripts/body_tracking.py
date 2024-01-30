@@ -28,8 +28,8 @@ from xml.dom.pulldom import default_bufsize
 import cv2
 import sys
 import pyzed.sl as sl
-import ogl_viewer.viewer as gl
-import cv_viewer.tracking_viewer as cv_viewer
+#import ogl_viewer.viewer as gl
+#import cv_viewer.tracking_viewer as cv_viewer
 import numpy as np
 import rospy
 from std_msgs.msg import String
@@ -144,32 +144,32 @@ class zed_to_potr():
         # positional_tracking_parameters.set_as_static = True
         zed.enable_positional_tracking(positional_tracking_parameters)
         
-        obj_param = sl.ObjectDetectionParameters()
+        obj_param = sl.BodyTrackingParameters()
         obj_param.enable_body_fitting = True            # Smooth skeleton move
         obj_param.enable_tracking = True                # Track people across images flow
-        obj_param.detection_model = sl.DETECTION_MODEL.HUMAN_BODY_ACCURATE
-        obj_param.body_format = sl.BODY_FORMAT.POSE_34  # Choose the BODY_FORMAT you wish to use
+        obj_param.detection_model = sl.BODY_TRACKING_MODEL.HUMAN_BODY_FAST #ACCURATE
+        obj_param.body_format = sl.BODY_FORMAT.BODY_18  # Choose the BODY_FORMAT you wish to use
 
         # Enable Object Detection module
-        zed.enable_object_detection(obj_param)
+        zed.enable_body_tracking(obj_param)
 
-        obj_runtime_param = sl.ObjectDetectionRuntimeParameters()
+        obj_runtime_param = sl.BodyTrackingRuntimeParameters()
         obj_runtime_param.detection_confidence_threshold = 40
 
         # Get ZED camera information
         camera_info = zed.get_camera_information()
 
         # 2D viewer utilities
-        display_resolution = sl.Resolution(min(camera_info.camera_resolution.width, 1280), min(camera_info.camera_resolution.height, 720))
-        image_scale = [display_resolution.width / camera_info.camera_resolution.width
-                    , display_resolution.height / camera_info.camera_resolution.height]
+        display_resolution = sl.Resolution(min(camera_info.camera_configuration.resolution.width, 1280), min(camera_info.camera_configuration.resolution.height, 720))
+        image_scale = [display_resolution.width / camera_info.camera_configuration.resolution.width
+                    , display_resolution.height / camera_info.camera_configuration.resolution.height]
 
         # Create OpenGL viewer
         # viewer = gl.GLViewer()
         # viewer.init(camera_info.calibration_parameters.left_cam, obj_param.enable_tracking,obj_param.body_format)
 
         # Create ZED objects filled in the main loop
-        bodies = sl.Objects()
+        bodies = sl.Bodies()
         image = sl.Mat()
         
         # pose_data = sl.Transform()          
@@ -213,7 +213,7 @@ class zed_to_potr():
                 # Retrieve left image
                 zed.retrieve_image(image, sl.VIEW.LEFT, sl.MEM.CPU, display_resolution)
                 # Retrieve objects
-                zed.retrieve_objects(bodies, obj_runtime_param)
+                zed.retrieve_bodies(bodies, obj_runtime_param)
                 # if i < 90:
                 #     continue
 
@@ -234,7 +234,7 @@ class zed_to_potr():
                                 rospy.Time.now(),
                                 'camera',
                                 'world')
-                if len(bodies.object_list)==1:
+                if len(bodies.body_list)==1:
 
                     # translation
                     # print("Camera Orientation: ", camera_orientation)
@@ -249,10 +249,10 @@ class zed_to_potr():
                     
                     # Get the pose of the Human relative to the world frame
                     # translation
-                    human_translation = bodies.object_list[0].keypoint[0]
+                    human_translation = bodies.body_list[0].keypoint[0]
                     # print("Human Translation: ",human_translation)
                     # orientation quaternion
-                    human_orientation = bodies.object_list[0].global_root_orientation
+                    human_orientation = bodies.body_list[0].global_root_orientation
                     # print("Human Orientation: ", human_orientation)
 
                     # Camera to World homogeneous transformation matrix
@@ -279,7 +279,7 @@ class zed_to_potr():
                 
 
                     # change skeleton data here
-                    pose_buffer.append(zed32_to_17_format(bodies.object_list[0].keypoint))
+                    pose_buffer.append(zed32_to_17_format(bodies.body_list[0].keypoint))
                     dt_buffer.append(time.time()-time1)
                     # publish point clouds 
                     

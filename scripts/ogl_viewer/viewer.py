@@ -10,6 +10,7 @@ import array
 import math
 import ctypes
 import pyzed.sl as sl
+
 M_PI = 3.1415926
 
 SK_SPHERE_SHADER = """
@@ -267,7 +268,7 @@ class Simple3DObject:
             glDisableVertexAttribArray(1)
 
 class Skeleton:
-    def __init__(self, _body_format = sl.BODY_FORMAT.POSE_18):
+    def __init__(self, _body_format = sl.BODY_FORMAT.BODY_18):
         self.clr = [0,0,0,1]
         self.kps = []
         self.joints = Simple3DObject(False)
@@ -280,8 +281,8 @@ class Skeleton:
         self.Z = abs(obj.position[2])
         # Draw skeletons
         if obj.keypoint.size > 0:
-            # POSE_18 -> 18 keypoints
-            if self.body_format == sl.BODY_FORMAT.POSE_18:
+            # BODY_18 -> 18 keypoints
+            if self.body_format == sl.BODY_FORMAT.BODY_18:
                 # Bones
                 # Definition of SKELETON_BONES in cv_viewer.utils.py, which slightly differs from BODY_BONES           
                 for bone in SKELETON_BONES:
@@ -444,7 +445,7 @@ class GLViewer:
         self.basic_sphere = Simple3DObject(True)
         # Show tracked objects only
         self.is_tracking_on = False
-        self.body_format = sl.BODY_FORMAT.POSE_18
+        self.body_format = sl.BODY_FORMAT.BODY_18
 
     def init(self, _params, _is_tracking_on, _body_format): 
         glutInit()
