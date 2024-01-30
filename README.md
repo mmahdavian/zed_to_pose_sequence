@@ -1,3 +1,4 @@
+This is a package for extracting and publishing a sequence of human body skeleton using ZED cameras based on SDK v4.
 ## Install 
 download and move to catkin_ws/src [zed files](https://drive.google.com/file/d/1Jaar8cNrHxhgWvg0E9z-c9KGBaNVyNQe/view?usp=drive_link)
 ```
